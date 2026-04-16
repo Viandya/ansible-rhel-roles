@@ -1,0 +1,34 @@
+---
+- name: Configure NTP servers
+  hosts: ntp_servers
+  roles:
+    - chrony
+  tags:
+    - ntp
+
+- name: Configure Application servers
+  hosts: app_servers
+  roles:
+    - nginx
+  tags:
+    - app
+
+- name: Configure Database servers
+  hosts: db_servers
+  roles:
+    - postgresql
+  tags:
+    - db
+
+- name: Final Report
+  hosts: app_servers
+  gather_facts: true
+  tasks:
+    - name: Show nginx summary
+      ansible.builtin.debug:
+        msg:
+          - "Server: {{ ansible_hostname }} ({{ ansible_default_ipv4.address }})"
+          - "Nginx Version: {{ nginx_version | default('Not collected (check mode?)') }}"
+          - "Log paths: {{ nginx_logs | default('Not collected (check mode?)') }}"
+      tags:
+        - summary

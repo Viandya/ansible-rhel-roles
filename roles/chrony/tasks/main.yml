@@ -1,0 +1,30 @@
+---
+- name: Install chrony package
+  ansible.builtin.dnf:
+    name: chrony
+    state: present
+  tags:
+    - packages
+    - chrony
+
+- name: Start chronyd manually
+  ansible.builtin.command: /usr/sbin/chronyd
+  args:
+    creates: /var/run/chronyd.pid
+  ignore_errors: yes
+  tags:
+    - service
+    - chrony
+
+- name: Check chrony sync status
+  ansible.builtin.command: chronyc tracking
+  register: chrony_status
+  changed_when: false
+  ignore_errors: yes
+  tags:
+    - verify
+
+- name: Display sync status
+  ansible.builtin.debug:
+    var: chrony_status.stdout_lines
+  when: chrony_status.rc == 0

@@ -1,0 +1,11 @@
+skip_list:
+  - 'schema[playbook]'
+  - 'name[play]'
+exclude_paths:
+  - .git/
+  - .github/
+warn_list:
+  - 'experimental'
+  - 'role-name'
+use_default_rules: true
+verbosity: 1

@@ -1,0 +1,4 @@
+---
+- name: restart chronyd
+  ansible.builtin.command: pkill chronyd && /usr/sbin/chronyd
+  ignore_errors: yes

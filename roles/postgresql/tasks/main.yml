@@ -1,0 +1,73 @@
+---
+- name: Install EPEL release
+  ansible.builtin.dnf:
+    name: epel-release
+    state: present
+  tags:
+    - packages
+
+- name: Install PostgreSQL from AppStream
+  ansible.builtin.dnf:
+    name:
+      - postgresql-server
+      - postgresql
+      - python3-psycopg2
+    state: present
+  tags:
+    - packages
+
+- name: Create PostgreSQL data directory
+  ansible.builtin.file:
+    path: /var/lib/pgsql/data
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: '0700'
+  tags:
+    - config
+
+- name: Check if PostgreSQL is initialized
+  ansible.builtin.stat:
+    path: /var/lib/pgsql/data/PG_VERSION
+  register: pg_initialized
+  tags:
+    - config
+
+- name: Initialize PostgreSQL database manually
+  ansible.builtin.command: /usr/bin/initdb -D /var/lib/pgsql/data
+  become: yes
+  become_user: postgres
+  when: not pg_initialized.stat.exists
+  tags:
+    - config
+
+- name: Configure pg_hba.conf for md5 auth
+  ansible.builtin.lineinfile:
+    path: /var/lib/pgsql/data/pg_hba.conf
+    regexp: '^host\s+all\s+all\s+127\.0\.0\.1/32'
+    line: 'host    all             all             127.0.0.1/32            md5'
+  tags:
+    - config
+
+- name: Configure postgresql.conf to listen on all interfaces
+  ansible.builtin.lineinfile:
+    path: /var/lib/pgsql/data/postgresql.conf
+    regexp: "^#?listen_addresses ="
+    line: "listen_addresses = '*'"
+  tags:
+    - config
+
+- name: Check if PostgreSQL is running
+  ansible.builtin.stat:
+    path: /var/lib/pgsql/data/postmaster.pid
+  register: pg_running
+  tags:
+    - service
+
+- name: Start PostgreSQL manually
+  ansible.builtin.command: /usr/bin/pg_ctl -D /var/lib/pgsql/data -l /var/lib/pgsql/logfile start
+  become: yes
+  become_user: postgres
+  when: not pg_running.stat.exists
+  tags:
+    - service

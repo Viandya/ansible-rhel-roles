@@ -1,0 +1,45 @@
+FROM rockylinux:9
+
+# Установка пакетов и Python 3.9
+RUN dnf -y install epel-release && \
+    dnf -y update && \
+    dnf -y install \
+    openssh-server \
+    openssh-clients \
+    python3 \
+    python3-pip \
+    python3-devel \
+    sudo \
+    iproute \
+    net-tools \
+    procps-ng \
+    passwd \
+    && dnf clean all
+
+# Проверяем версию Python
+RUN python3 --version
+
+# Обновляем pip
+RUN pip3 install --upgrade pip
+
+# Генерация SSH ключей
+RUN ssh-keygen -A
+
+# Настройка SSH
+RUN echo 'root:ansible' | chpasswd && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+# Создание директорий
+RUN mkdir -p /var/run/sshd
+
+EXPOSE 22
+
+# Скрипт запуска
+RUN echo '#!/bin/bash' > /start.sh && \
+    echo '/usr/sbin/sshd' >> /start.sh && \
+    echo 'sleep infinity' >> /start.sh && \
+    chmod +x /start.sh
+
+CMD ["/start.sh"]

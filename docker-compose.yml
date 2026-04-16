@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  ntp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.rhel
+    container_name: ntp-server
+    hostname: ntp.local
+    privileged: true
+    ports:
+      - "2221:22"  # SSH доступ через localhost:2221
+    networks:
+      ansible_net:
+        ipv4_address: 172.20.0.10
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    command: /usr/sbin/init
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.rhel
+    container_name: app-server
+    hostname: app.local
+    privileged: true
+    ports:
+      - "2222:22"  # SSH доступ через localhost:2222
+      - "8080:80"  # Nginx на localhost:8080
+    networks:
+      ansible_net:
+        ipv4_address: 172.20.0.20
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    command: /usr/sbin/init
+
+  db:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.rhel
+    container_name: db-server
+    hostname: db.local
+    privileged: true
+    ports:
+      - "2223:22"  # SSH доступ через localhost:2223
+      - "5432:5432"  # PostgreSQL
+    networks:
+      ansible_net:
+        ipv4_address: 172.20.0.30
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    command: /usr/sbin/init
+
+networks:
+  ansible_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

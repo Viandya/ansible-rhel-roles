@@ -1,0 +1,27 @@
+---
+all:
+  children:
+    ntp_servers:
+      hosts:
+        ntp:
+          ansible_host: 127.0.0.1
+          ansible_port: 2221
+          ansible_user: root
+          ansible_password: ansible
+          ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    app_servers:
+      hosts:
+        app:
+          ansible_host: 127.0.0.1
+          ansible_port: 2222
+          ansible_user: root
+          ansible_password: ansible
+          ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    db_servers:
+      hosts:
+        db:
+          ansible_host: 127.0.0.1
+          ansible_port: 2223
+          ansible_user: root
+          ansible_password: ansible
+          ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'

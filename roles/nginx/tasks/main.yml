@@ -1,0 +1,55 @@
+---
+- name: Install EPEL and Nginx
+  ansible.builtin.dnf:
+    name:
+      - epel-release
+      - nginx
+    state: present
+  tags:
+    - packages
+    - nginx
+
+- name: Create nginx directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /var/log/nginx
+    - /run
+  tags:
+    - config
+
+- name: Deploy custom index.html from template
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: /usr/share/nginx/html/index.html
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nginx
+  tags:
+    - config
+
+- name: Start nginx manually
+  ansible.builtin.command: nginx
+  args:
+    creates: /run/nginx.pid
+  tags:
+    - service
+
+- name: Gather nginx version and log paths
+  ansible.builtin.shell: |
+    nginx -v 2>&1 | awk -F '/' '{print $2}'
+    grep -E "access_log|error_log" /etc/nginx/nginx.conf | grep -v '#' | head -2
+  register: nginx_info
+  changed_when: false
+  tags:
+    - verify
+
+- name: Set facts for final summary
+  ansible.builtin.set_fact:
+    nginx_version: "{{ nginx_info.stdout_lines[0] | default('unknown') }}"
+    nginx_logs: "{{ nginx_info.stdout_lines[1:] | join(' ') }}"
+  tags:
+    - verify

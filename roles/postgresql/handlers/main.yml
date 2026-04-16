@@ -1,0 +1,5 @@
+---
+- name: restart postgresql
+  ansible.builtin.command: /usr/pgsql-13/bin/pg_ctl -D /var/lib/pgsql/13/data restart
+  become_user: postgres
+  ignore_errors: yes

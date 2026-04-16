@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to {{ ansible_hostname }}</title>
+</head>
+<body>
+    <h1>Nginx is working on {{ ansible_hostname }}</h1>
+    <p>Managed by Ansible</p>
+    <hr>
+    <footer>
+        <p>Hostname: {{ ansible_facts['hostname'] }}</p>
+        <p>IP Address: {{ ansible_facts['default_ipv4']['address'] }}</p>
+    </footer>
+</body>
+</html>
