@@ -38,18 +38,25 @@
   tags:
     - service
 
-- name: Gather nginx version and log paths
-  ansible.builtin.shell: |
-    nginx -v 2>&1 | awk -F '/' '{print $2}'
-    grep -E "access_log|error_log" /etc/nginx/nginx.conf | grep -v '#' | head -2
-  register: nginx_info
+- name: Gather nginx version
+  ansible.builtin.shell: nginx -v 2>&1 | awk -F '/' '{print $2}'
+  register: nginx_version_raw
   changed_when: false
+  check_mode: false
+  tags:
+    - verify
+
+- name: Gather nginx log paths
+  ansible.builtin.shell: grep -E "access_log|error_log" /etc/nginx/nginx.conf | grep -v '#' | head -2
+  register: nginx_logs_raw
+  changed_when: false
+  check_mode: false
   tags:
     - verify
 
 - name: Set facts for final summary
   ansible.builtin.set_fact:
-    nginx_version: "{{ nginx_info.stdout_lines[0] | default('unknown') }}"
-    nginx_logs: "{{ nginx_info.stdout_lines[1:] | join(' ') }}"
+    nginx_version: "{{ nginx_version_raw.stdout | trim }}"
+    nginx_logs: "{{ nginx_logs_raw.stdout_lines | join('; ') }}"
   tags:
     - verify
