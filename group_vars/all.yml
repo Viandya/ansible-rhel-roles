@@ -1,0 +1,4 @@
+---
+postgresql_version: "13.23"
+postgresql_data_dir: "/var/lib/pgsql/data"
+enable_epel: true

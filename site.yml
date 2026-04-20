@@ -24,11 +24,28 @@
   hosts: app_servers
   gather_facts: true
   tasks:
+    - name: Get nginx version
+      ansible.builtin.shell: nginx -v 2>&1 | awk -F '/' '{print $2}'
+      register: nginx_ver
+      changed_when: false
+      check_mode: false
+      tags:
+        - always
+
+    - name: Get nginx log paths
+      ansible.builtin.shell: grep -E "access_log|error_log" /etc/nginx/nginx.conf 2>/dev/null | grep -v '#' | head -2
+      register: nginx_log
+      changed_when: false
+      check_mode: false
+      tags:
+        - always
+
     - name: Show nginx summary
       ansible.builtin.debug:
         msg:
-          - "Server: {{ ansible_hostname }} ({{ ansible_default_ipv4.address }})"
-          - "Nginx Version: {{ nginx_version | default('Not collected (check mode?)') }}"
-          - "Log paths: {{ nginx_logs | default('Not collected (check mode?)') }}"
+          - "Server: {{ ansible_facts.hostname }} ({{ ansible_facts.default_ipv4.address }})"
+          - "Nginx Version: {{ nginx_ver.stdout | trim }}"
+          - "Log paths: {{ nginx_log.stdout_lines | join('; ') }}"
       tags:
+        - always
         - summary
